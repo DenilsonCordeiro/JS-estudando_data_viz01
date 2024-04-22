@@ -1,0 +1,18 @@
+body{
+  margin: 0;
+  overflow: hidden;
+}
+
+body text{
+  color: #635F5D;
+}
+
+svg{
+  background-color: #EFECEA;
+}
+
+svg rect{
+  fill: #137B80;
+  stroke-width: 1;
+  stroke: #000000;
+}
