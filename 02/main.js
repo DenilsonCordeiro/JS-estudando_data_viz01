@@ -8,33 +8,48 @@ const svg = select('body')
     .attr('width', width)
     .attr('height', height);
 
+/**
+ * recebe coordenadas de um poligono e devolve o seu centro
+ * @param {Array} coords 
+ * @returns {Array}
+ */
+const getCentroid = (coords) => {
+    let x = 0;
+    let y = 0;
+    const n = coords.length;
+    for(let i = 0; i<coords.length; i++){
+        x += coords[i][0];
+        y += coords[i][1];
+    }
+    return [x/n, y/n]
+}
+
 const Main = () => {
     json("./russas_map/russas.json").then(data => {
-
-        //TODO: ver oque eu posso fazer sobre esses numeros hardcoded
         const projection = geoMercator()
             .fitSize([width, height], data)
-            .scale(524860)
-            .translate([width/2 + 347900, height/2 - 45360]);
+            .center([-37.97670,-4.93924])
+            .scale(400000)
         const path = geoPath()
-            .projection(projection);        
+            .projection(projection);       
 
         
-        //TODO: implementar função que devolva o centro de cada path
-        const render_data = data.features.map(
+        let render_data = data.features.map(
             d => (
                 {
                     p: path(d.geometry),
                     label: d.properties.name,
                     color: !d.geometry ? 'none' : 'blue',
-                    center: d.geometry
+                    centroid: projection(getCentroid(d.geometry.coordinates[0]))
                 }
             )
         )
+        render_data = render_data.filter(d => d.label !== undefined);
+        
+        for(let i=0; i<render_data.length; i++){
+            console.log(render_data[i].centroid);
+        }
 
-        console.log(render_data[1].center)
-
-        //TODO: append circulos com as informações de cada região adiministrativa
         svg.selectAll('path')
             .data(render_data)
             .join('path')
@@ -42,6 +57,15 @@ const Main = () => {
                 .attr('stroke', 'black')
                 .attr('stroke-width', 2)
                 .attr('fill', 'none')
+        svg.selectAll('circle')
+            .data(render_data)
+            .join('circle')
+                .attr('cx', d => d.centroid[0])
+                .attr('cy', d => d.centroid[1])
+                .attr('r', 7)
+                .attr('fill', 'red')
+            .append('title')
+            .text(d => d.label)
 
     });
 };
